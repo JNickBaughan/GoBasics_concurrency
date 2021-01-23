@@ -9,8 +9,17 @@ import (
 func main() {
 	var waitGroup sync.WaitGroup
 
-	setUpWorkGroupAndCount("hello", 50, &waitGroup)
-	setUpWorkGroupAndCount("world", 50, &waitGroup)
+	c1 := make(chan string)
+	c2 := make(chan string)
+
+	setUpWorkGroupAndCount("hello", 50, c1, &waitGroup)
+	setUpWorkGroupAndCount("world", 50, c2, &waitGroup)
+
+	msg1 := <- c1;
+	fmt.Println(msg1)
+
+	msg2 := <- c2;
+	fmt.Println(msg2)
 
 	waitGroup.Wait()
 
@@ -27,18 +36,22 @@ type addCountToWorkGroupFunc func(waitGroup *sync.WaitGroup)
 
 type countFunc func(printMe string, times int, waitGroup *sync.WaitGroup)
 
-func setUpWorkGroupAndCount(printMe string, times int, waitGroup *sync.WaitGroup){
+func setUpWorkGroupAndCount(printMe string, times int, c chan string, waitGroup *sync.WaitGroup){
 	waitGroup.Add(1)
-	go count(printMe, times , waitGroup )
+	go count(printMe, times , waitGroup, c)
 }
 
 func addCountToWorkGroup(waitGroup *sync.WaitGroup){
 	waitGroup.Add(1)
 }
 
-func count(printMe string, times int, waitGroup *sync.WaitGroup){
+func count(printMe string, times int, waitGroup *sync.WaitGroup, c chan string){
 	for i := 1; i <= times; i++ {
 		fmt.Println("'" + printMe + "' has been printed " + strconv.FormatInt(int64(i), 10) + " times" )
+		if(i == 2){
+			c <- "this is a message from the channel"
+			close(c)
+		}
 	}
 	waitGroup.Done()
 }
