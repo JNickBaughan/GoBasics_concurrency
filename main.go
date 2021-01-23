@@ -15,11 +15,21 @@ func main() {
 	setUpWorkGroupAndCount("hello", 50, c1, &waitGroup)
 	setUpWorkGroupAndCount("world", 50, c2, &waitGroup)
 
-	msg1 := <- c1;
-	fmt.Println(msg1)
+	
 
-	msg2 := <- c2;
-	fmt.Println(msg2)
+	// two different ways to handle channels
+	for{
+		msg1, open1 := <- c1;
+		if !open1 {
+			break;
+		}
+		fmt.Println(msg1)
+	}
+	for msg2 := range c2 {
+		fmt.Println(msg2)
+	}
+
+	
 
 	waitGroup.Wait()
 
@@ -48,8 +58,11 @@ func addCountToWorkGroup(waitGroup *sync.WaitGroup){
 func count(printMe string, times int, waitGroup *sync.WaitGroup, c chan string){
 	for i := 1; i <= times; i++ {
 		fmt.Println("'" + printMe + "' has been printed " + strconv.FormatInt(int64(i), 10) + " times" )
-		if(i == 2){
-			c <- "this is a message from the channel"
+		if(i < 4){
+			c <-  "This is a message from channel " + printMe + " :" + strconv.FormatInt(int64(i), 10)
+		}
+		if(i == 4){
+			c <- "This is athe final message from channel " + printMe + " :" + strconv.FormatInt(int64(i), 10)
 			close(c)
 		}
 	}
