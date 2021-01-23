@@ -8,19 +8,9 @@ import (
 
 func main() {
 	var waitGroup sync.WaitGroup
-	waitGroup.Add(2)
 
-	go func() {
-		
-		count("hello", 50)
-		waitGroup.Done()
-	}()
-
-	go func() {
-
-		count("world", 50)
-		waitGroup.Done()
-	}()
+	setUpWorkGroupAndCount("hello", 50, &waitGroup)
+	setUpWorkGroupAndCount("world", 50, &waitGroup)
 
 	waitGroup.Wait()
 
@@ -33,8 +23,22 @@ func main() {
 	//fmt.Scanln()
 }
 
-func count(printMe string, times int){
+type addCountToWorkGroupFunc func(waitGroup *sync.WaitGroup)
+
+type countFunc func(printMe string, times int, waitGroup *sync.WaitGroup)
+
+func setUpWorkGroupAndCount(printMe string, times int, waitGroup *sync.WaitGroup){
+	waitGroup.Add(1)
+	go count(printMe, times , waitGroup )
+}
+
+func addCountToWorkGroup(waitGroup *sync.WaitGroup){
+	waitGroup.Add(1)
+}
+
+func count(printMe string, times int, waitGroup *sync.WaitGroup){
 	for i := 1; i <= times; i++ {
 		fmt.Println("'" + printMe + "' has been printed " + strconv.FormatInt(int64(i), 10) + " times" )
 	}
+	waitGroup.Done()
 }
