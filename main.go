@@ -59,6 +59,8 @@ func count(printMe string, times int, waitGroup *sync.WaitGroup, c chan string){
 	for i := 1; i <= times; i++ {
 		fmt.Println("'" + printMe + "' has been printed " + strconv.FormatInt(int64(i), 10) + " times" )
 		if(i < 4){
+
+			// NOTE - receiving a message through the channel is a blocking operation
 			c <-  "This is a message from channel " + printMe + " :" + strconv.FormatInt(int64(i), 10)
 		}
 		if(i == 4){
